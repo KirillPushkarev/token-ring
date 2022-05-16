@@ -5,6 +5,7 @@ public class Message {
     private final String content;
     private final int initialNodeIndex;
     private final List<Long> fullCircleTimestamps = new ArrayList<>();
+    private long circleNumber = 1;
 
     public Message(String content, int initialNodeIndex) {
         this.content = content;
@@ -41,5 +42,13 @@ public class Message {
         return "Message{" +
                 "content='" + content + '\'' +
                 '}';
+    }
+
+    public void incrementCircleNumber() {
+        circleNumber++;
+    }
+
+    public long getCircleNumber() {
+        return circleNumber;
     }
 }

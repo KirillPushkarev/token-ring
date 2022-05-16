@@ -5,7 +5,13 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class MetricCollector {
+    public static final double NANOSECONDS_IN_SECOND = 1e+9;
     private final List<TestMetrics> metrics = new ArrayList<>();
+    private final int circlesBetweenLatencyRecord;
+
+    public MetricCollector(int circlesBetweenLatencyRecord) {
+        this.circlesBetweenLatencyRecord = circlesBetweenLatencyRecord;
+    }
 
     public void addMetrics(List<? extends Node> nodes) {
         List<Message> messages = new ArrayList<>();
@@ -22,9 +28,9 @@ public class MetricCollector {
             cumulativeCircleLatency += message.getFullCircleLatencies().stream().reduce(Double::sum).orElseThrow();
             circleLatencies.addAll(message.getFullCircleLatencies());
         }
-        double circleLatencyAvg = cumulativeCircleLatency / circleLatencies.size() / 1e+9;
-        double circleLatencyMedian = median.evaluate(circleLatencies.stream().mapToDouble(v -> v).toArray()) / 1e+9;
-        double circleLatencyPercentile90 = percentile90.evaluate(circleLatencies.stream().mapToDouble(v -> v).toArray()) / 1e+9;
+        double circleLatencyAvg = cumulativeCircleLatency / circleLatencies.size() / circlesBetweenLatencyRecord / NANOSECONDS_IN_SECOND;
+        double circleLatencyMedian = median.evaluate(circleLatencies.stream().mapToDouble(v -> v).toArray()) / circlesBetweenLatencyRecord / NANOSECONDS_IN_SECOND;
+        double circleLatencyPercentile90 = percentile90.evaluate(circleLatencies.stream().mapToDouble(v -> v).toArray()) / circlesBetweenLatencyRecord / NANOSECONDS_IN_SECOND;
 
         long cumulativeThroughput = 0;
         List<Long> throughputPerSecondValues = new ArrayList<>();

@@ -19,5 +19,6 @@ public class TestReportPrinter {
         System.out.println("----- avg.: " + metrics.getThroughputPerSecondAvg() + " messages.");
         System.out.println("----- median: " + metrics.getThroughputPerSecondMedian() + " messages.");
         System.out.println("----- p90: " + metrics.getThroughputPerSecondPercentile90() + " messages.");
+        System.out.println("-------------------------------------------------------------------------------------");
     }
 }

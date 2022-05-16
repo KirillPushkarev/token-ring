@@ -12,11 +12,12 @@ import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
 public class TokenRing {
-    public static final int WARM_UP_NODES = 2;
-    public static final int WARM_UP_MESSAGES = 4;
-    public static final int WARM_UP_RUNNING_TIME_IN_SECONDS = 10;
-    public static final int TEST_RUNNING_TIME_IN_SECONDS = 60;
-    public static final String[] SUPPORTED_TESTS = new String[]{"ArrayBlockingQueue", "LinkedBlockingQueue", "LinkedConcurrentQueue"};
+    private static final int WARM_UP_NODES = 2;
+    private static final int WARM_UP_MESSAGES = 4;
+    private static final int WARM_UP_RUNNING_TIME_IN_SECONDS = 10;
+    private static final int TEST_RUNNING_TIME_IN_SECONDS = 60;
+    private static final int CIRCLES_BETWEEN_LATENCY_RECORD = 1000;
+    private static final String[] SUPPORTED_TESTS = new String[]{"ArrayBlockingQueue", "LinkedBlockingQueue", "LinkedConcurrentQueue"};
 
     public static void main(String[] args) throws IOException {
         if (args.length != 1) {
@@ -29,7 +30,8 @@ public class TokenRing {
         List<TestConfig> testConfigs = List.of(
                 new TestConfig(4, 2),
                 new TestConfig(4, 4),
-                new TestConfig(4, 16)
+                new TestConfig(4, 16),
+                new TestConfig(4, 128)
         );
         switch (testName) {
             case "ArrayBlockingQueue":
@@ -78,12 +80,12 @@ public class TokenRing {
     }
 
     private static void runWithTestConfigs(BiConsumer<TestConfig, MetricCollector> test, List<TestConfig> testConfigs, String testName) throws IOException {
-        MetricCollector metricCollector = new MetricCollector();
+        MetricCollector metricCollector = new MetricCollector(CIRCLES_BETWEEN_LATENCY_RECORD);
         for (TestConfig testConfig : testConfigs) {
             test.accept(testConfig, metricCollector);
         }
 
-        new SummaryRepostPrinter().printReport(metricCollector, testName);
+        new SummaryRepostPrinter().printReport(metricCollector, testName, testConfigs);
     }
 
     private static void testWithArrayBlockingQueue(TestConfig testConfig, MetricCollector metricCollector) {
@@ -139,7 +141,7 @@ public class TokenRing {
                 }
             }
             messageCounter += numberOfMessagesPerNode;
-            BlockingNode node = new BlockingNode(i, prevBuffer, nextBuffer, processingLogic, 1);
+            BlockingNode node = new BlockingNode(i, prevBuffer, nextBuffer, processingLogic, CIRCLES_BETWEEN_LATENCY_RECORD);
             nodes.add(node);
             prevBuffer = nextBuffer;
         }
@@ -164,7 +166,7 @@ public class TokenRing {
                 nextBuffer.add(new Message("Initial node number:" + i + ". Message number: " + (messageCounter + j), i));
             }
             messageCounter += numberOfMessagesPerNode;
-            LockFreeNode node = new LockFreeNode(i, prevBuffer, nextBuffer, processingLogic, 1);
+            LockFreeNode node = new LockFreeNode(i, prevBuffer, nextBuffer, processingLogic, CIRCLES_BETWEEN_LATENCY_RECORD);
             nodes.add(node);
             prevBuffer = nextBuffer;
         }

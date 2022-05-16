@@ -10,7 +10,6 @@ public abstract class Node implements Runnable {
     private final List<Long> throughputValues = new ArrayList<>();
     protected long processedMessagesCounter = 0;
     private long lastTimestamp;
-    private long circleNumber;
 
     public Node(int index, BiConsumer<Node, Message> processingLogic, int circlesBetweenLatencyRecord) {
         this.index = index;
@@ -27,7 +26,6 @@ public abstract class Node implements Runnable {
     @Override
     public void run() {
         lastTimestamp = System.nanoTime();
-        circleNumber = 1;
     }
 
     protected void recordMetrics(Message message) {
@@ -36,12 +34,12 @@ public abstract class Node implements Runnable {
             throughputValues.add(processedMessagesCounter);
             lastTimestamp = timestamp;
             processedMessagesCounter = 0;
-            circleNumber++;
         }
 
         processedMessagesCounter++;
-        if (message.getInitialNodeIndex() == index) {
+        if (message.getInitialNodeIndex() == index && message.getCircleNumber() % circlesBetweenLatencyRecord == 0) {
             message.addTimestamp(timestamp);
         }
+        message.incrementCircleNumber();
     }
 }
