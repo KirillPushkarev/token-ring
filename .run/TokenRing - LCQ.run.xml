@@ -1,0 +1,11 @@
+<component name="ProjectRunConfigurationManager">
+  <configuration default="false" name="TokenRing - LCQ" type="Application" factoryName="Application">
+    <option name="MAIN_CLASS_NAME" value="tokenring.TokenRing" />
+    <module name="token-ring" />
+    <option name="PROGRAM_PARAMETERS" value="LinkedConcurrentQueue" />
+    <option name="VM_PARAMETERS" value="-Xmx6g" />
+    <method v="2">
+      <option name="Make" enabled="true" />
+    </method>
+  </configuration>
+</component>

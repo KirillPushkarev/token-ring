@@ -1,3 +1,5 @@
+package tokenring;
+
 import org.apache.commons.math3.stat.descriptive.rank.Median;
 import org.apache.commons.math3.stat.descriptive.rank.Percentile;
 
@@ -5,7 +7,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class MetricCollector {
-    public static final double NANOSECONDS_IN_SECOND = 1e+9;
+    private static final double NANOSECONDS_IN_SECOND = 1e+9;
     private final List<TestMetrics> metrics = new ArrayList<>();
     private final int circlesBetweenLatencyRecord;
 
@@ -16,7 +18,7 @@ public class MetricCollector {
     public void addMetrics(List<? extends Node> nodes) {
         List<Message> messages = new ArrayList<>();
         for (Node node : nodes) {
-            messages.addAll(node.getNextBuffer());
+            messages.addAll(node.getAssignedMessages());
         }
 
         Median median = new Median();
@@ -25,22 +27,23 @@ public class MetricCollector {
         double cumulativeCircleLatency = 0;
         List<Double> circleLatencies = new ArrayList<>();
         for (Message message : messages) {
-            cumulativeCircleLatency += message.getFullCircleLatencies().stream().reduce(Double::sum).orElseThrow();
-            circleLatencies.addAll(message.getFullCircleLatencies());
+            List<Double> fullCircleLatencies = message.getFullCircleLatencies();
+            cumulativeCircleLatency += fullCircleLatencies.stream().parallel().reduce(Double::sum).orElseThrow();
+            circleLatencies.addAll(fullCircleLatencies);
         }
         double circleLatencyAvg = cumulativeCircleLatency / circleLatencies.size() / circlesBetweenLatencyRecord / NANOSECONDS_IN_SECOND;
         double circleLatencyMedian = median.evaluate(circleLatencies.stream().mapToDouble(v -> v).toArray()) / circlesBetweenLatencyRecord / NANOSECONDS_IN_SECOND;
         double circleLatencyPercentile90 = percentile90.evaluate(circleLatencies.stream().mapToDouble(v -> v).toArray()) / circlesBetweenLatencyRecord / NANOSECONDS_IN_SECOND;
 
         long cumulativeThroughput = 0;
-        List<Long> throughputPerSecondValues = new ArrayList<>();
+        List<Long> throughputPerValues = new ArrayList<>();
         for (Node node : nodes) {
-            cumulativeThroughput += node.getThroughputValues().stream().reduce(Long::sum).orElseThrow();
-            throughputPerSecondValues.addAll(node.getThroughputValues());
+            cumulativeThroughput += node.getThroughputValues().stream().parallel().reduce(Long::sum).orElseThrow();
+            throughputPerValues.addAll(node.getThroughputValues());
         }
-        double throughputPerSecondAvg = 1.0 * cumulativeThroughput / throughputPerSecondValues.size();
-        double throughputPerSecondMedian = median.evaluate(throughputPerSecondValues.stream().mapToDouble(v -> v).toArray());
-        double throughputPerSecondPercentile90 = percentile90.evaluate(throughputPerSecondValues.stream().mapToDouble(v -> v).toArray());
+        double throughputPerSecondAvg = (double)cumulativeThroughput / throughputPerValues.size();
+        double throughputPerSecondMedian = median.evaluate(throughputPerValues.stream().mapToDouble(v -> v).toArray());
+        double throughputPerSecondPercentile90 = percentile90.evaluate(throughputPerValues.stream().mapToDouble(v -> v).toArray());
 
         metrics.add(
                 new TestMetrics(
@@ -54,12 +57,12 @@ public class MetricCollector {
         );
     }
 
-    public TestMetrics getLastMetrics() {
-        return metrics.get(metrics.size() - 1);
-    }
-
     public List<TestMetrics> getMetrics() {
         return metrics;
+    }
+
+    public TestMetrics getLastTestMetrics() {
+        return metrics.get(metrics.size() - 1);
     }
 
     public static class TestMetrics {

@@ -1,0 +1,10 @@
+<component name="ProjectRunConfigurationManager">
+  <configuration default="false" name="TokenRing - LBQ" type="Application" factoryName="Application">
+    <option name="MAIN_CLASS_NAME" value="tokenring.TokenRing" />
+    <module name="token-ring" />
+    <option name="PROGRAM_PARAMETERS" value="LinkedBlockingQueue" />
+    <method v="2">
+      <option name="Make" enabled="true" />
+    </method>
+  </configuration>
+</component>

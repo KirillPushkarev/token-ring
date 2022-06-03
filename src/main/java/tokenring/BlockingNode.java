@@ -1,22 +1,20 @@
+package tokenring;
+
+import tokenring.messageprocessor.MessageProcessor;
+
+import java.util.ArrayList;
 import java.util.Collection;
+import java.util.List;
 import java.util.concurrent.BlockingQueue;
-import java.util.function.BiConsumer;
 
 public class BlockingNode extends Node {
-    public final static int BUFFER_CAPACITY = 1000;
-
     private final BlockingQueue<Message> prevBuffer;
     private final BlockingQueue<Message> nextBuffer;
 
-    public BlockingNode(int index, BlockingQueue<Message> prevBuffer, BlockingQueue<Message> nextBuffer, BiConsumer<Node, Message> processingLogic, int circlesBetweenLatencyRecord) {
+    public BlockingNode(int index, BlockingQueue<Message> prevBuffer, BlockingQueue<Message> nextBuffer, MessageProcessor processingLogic, int circlesBetweenLatencyRecord) {
         super(index, processingLogic, circlesBetweenLatencyRecord);
         this.prevBuffer = prevBuffer;
         this.nextBuffer = nextBuffer;
-    }
-
-    @Override
-    public Collection<Message> getNextBuffer() {
-        return nextBuffer;
     }
 
     @Override
@@ -26,8 +24,10 @@ public class BlockingNode extends Node {
         while (true) {
             try {
                 Message message = prevBuffer.take();
+                currentMessage = message;
                 process(message);
                 nextBuffer.put(message);
+                currentMessage = null;
             } catch (InterruptedException e) {
                 return;
             }
@@ -39,8 +39,17 @@ public class BlockingNode extends Node {
     }
 
     private void process(Message message) {
+        messageProcessor.processMessage(this, message);
         recordMetrics(message);
+    }
 
-        processingLogic.accept(this, message);
+    @Override
+    public Collection<Message> getAssignedMessages() {
+        List<Message> assignedMessages = new ArrayList<>(prevBuffer);
+        if (currentMessage != null) {
+            assignedMessages.add(currentMessage);
+        }
+
+        return assignedMessages;
     }
 }

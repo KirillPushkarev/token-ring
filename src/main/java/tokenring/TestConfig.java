@@ -1,3 +1,5 @@
+package tokenring;
+
 public class TestConfig {
     private final int numberOfNodes;
     private final int numberOfMessages;
@@ -13,5 +15,10 @@ public class TestConfig {
 
     public int getNumberOfMessages() {
         return numberOfMessages;
+    }
+
+    @Override
+    public String toString() {
+        return "{" + "numberOfNodes: " + numberOfNodes + ", numberOfMessages: " + numberOfMessages + "}";
     }
 }

@@ -1,20 +1,18 @@
-import java.util.Timer;
+package tokenring;
+
 import java.util.TimerTask;
 
 class TimeOutTask extends TimerTask {
     private final Thread thread;
-    private final Timer timer;
 
-    public TimeOutTask(Thread thread, Timer timer) {
+    public TimeOutTask(Thread thread) {
         this.thread = thread;
-        this.timer = timer;
     }
 
     @Override
     public void run() {
         if (thread != null && thread.isAlive()) {
             thread.interrupt();
-            timer.cancel();
         }
     }
 }
