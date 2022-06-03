@@ -28,7 +28,7 @@ public class MetricCollector {
         List<Double> circleLatencies = new ArrayList<>();
         for (Message message : messages) {
             List<Double> fullCircleLatencies = message.getFullCircleLatencies();
-            cumulativeCircleLatency += fullCircleLatencies.stream().parallel().reduce(Double::sum).orElseThrow();
+            cumulativeCircleLatency += fullCircleLatencies.stream().reduce(Double::sum).orElseThrow();
             circleLatencies.addAll(fullCircleLatencies);
         }
         double circleLatencyAvg = cumulativeCircleLatency / circleLatencies.size() / circlesBetweenLatencyRecord / NANOSECONDS_IN_SECOND;
@@ -38,7 +38,7 @@ public class MetricCollector {
         long cumulativeThroughput = 0;
         List<Long> throughputPerValues = new ArrayList<>();
         for (Node node : nodes) {
-            cumulativeThroughput += node.getThroughputValues().stream().parallel().reduce(Long::sum).orElseThrow();
+            cumulativeThroughput += node.getThroughputValues().stream().reduce(Long::sum).orElseThrow();
             throughputPerValues.addAll(node.getThroughputValues());
         }
         double throughputPerSecondAvg = (double)cumulativeThroughput / throughputPerValues.size();
